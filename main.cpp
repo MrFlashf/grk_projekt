@@ -17,6 +17,7 @@ using namespace std;
 GLuint programColor;
 GLuint programTexture;
 
+GLuint starsTexture;
 GLuint sunTexture;
 GLuint mercuryTexture;
 GLuint venusTexture;
@@ -43,6 +44,13 @@ glm::vec3 cameraDir;
 glm::mat4 cameraMatrix, perspectiveMatrix;
 
 glm::vec3 lightDir = glm::normalize(glm::vec3(20.0f, 0.0f, -2.0f));
+
+struct Planet {
+	float size;
+	GLuint texture;
+};
+
+Planet planets[8];
 
 void keyboard(unsigned char key, int x, int y) {
 	float angleSpeed = 0.2f;
@@ -81,6 +89,17 @@ void drawObjectTexture(obj::Model * model, glm::mat4 modelMatrix, GLuint texture
 	glUseProgram(0);
 }
 
+void initializePlanetsArray() {
+        planets[0] = { 0.50f, mercuryTexture };
+        planets[1] = { 0.75f, venusTexture   };
+        planets[2] = { 1.40f, earthTexture   };
+        planets[3] = { 0.75f, marsTexture    };
+        planets[4] = { 5.00f, jupiterTexture };
+        planets[5] = { 4.00f, saturnTexture  };
+        planets[6] = { 1.75f, uranusTexture  };
+        planets[7] = { 1.50f, neptuneTexture };
+}
+
 void renderScene() {
 	// Aktualizacja macierzy widoku i rzutowania. Macierze sa przechowywane w zmiennych globalnych, bo uzywa ich funkcja drawObject.
 	// (Bardziej elegancko byloby przekazac je jako argumenty do funkcji, ale robimy tak dla uproszczenia kodu.
@@ -91,22 +110,57 @@ void renderScene() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glClearColor(0.1f, 0.3f, 0.3f, 1.0f);
+	//tło
+//	drawObjectTexture(&sphereModel, glm::translate(glm::vec3(0,0,0))*glm::scale(glm::vec3(140.0f)), starsTexture);
 
 	// Macierz statku "przyczepia" go do kamery. Warto przeanalizowac te linijke i zrozumiec jak to dziala.
 	glm::mat4 shipModelMatrix = glm::translate(cameraPos + cameraDir * 0.5f + glm::vec3(0,-0.25f,0)) * glm::rotate(-cameraAngle + glm::radians(90.0f), glm::vec3(0,1,0)) * glm::scale(glm::vec3(0.1f));
 	drawObjectTexture(&shipModel, shipModelMatrix, shipTexture);
 
     glm::mat4 planetModelMatrix;
-	float d = 50.0f;
-	drawObjectTexture(&sphereModel, glm::translate(glm::vec3(20.0f,0,-2)) * glm::scale(glm::vec3(20.0f)), sunTexture);
-	drawObjectTexture(&sphereModel, glm::translate(glm::vec3(45.0f,0,-2)) * glm::scale(glm::vec3(0.5f)), mercuryTexture);
-	drawObjectTexture(&sphereModel, glm::translate(glm::vec3(48.0f,0,5)) * glm::scale(glm::vec3(1.24f)), venusTexture);
-    drawObjectTexture(&sphereModel, glm::translate(glm::vec3(54.0f,0,2)) * glm::scale(glm::vec3(1.31f)), earthTexture);
-    drawObjectTexture(&sphereModel, glm::translate(glm::vec3(58.06f,0,2)) * glm::scale(glm::vec3(0.7f)), marsTexture);
-    drawObjectTexture(&sphereModel, glm::translate(glm::vec3(90.0f,0,2)) * glm::scale(glm::vec3(14.0f)), jupiterTexture);
-    drawObjectTexture(&sphereModel, glm::translate(glm::vec3(118.0f,0,-2)) * glm::scale(glm::vec3(11.0f)), saturnTexture);
-    drawObjectTexture(&sphereModel, glm::translate(glm::vec3(140.0f,0,2)) * glm::scale(glm::vec3(4.75f)), uranusTexture);
-    drawObjectTexture(&sphereModel, glm::translate(glm::vec3(150.0f,0,2)) * glm::scale(glm::vec3(4.5f)), neptuneTexture);
+
+	float time = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
+
+	glm::mat4 rotationArray[8];
+	float basicRadius = 5.0f;
+
+	for (int i = 0; i < 8; i++) {
+		glm::mat4 rot;
+        glm::mat4 scaling   = glm::scale(glm::vec3(planets[i].size));
+        float mnoznik       = 0;
+
+        for (int j = 0 ; j < i; j++) {
+            mnoznik += 2*planets[j].size + 1;
+        }
+        mnoznik+= planets[i].size + 1;
+
+        rot[0][0] 			= cos(time);
+		rot[2][0] 			= -sin(time);
+		rot[0][2] 			= sin(time);
+		rot[2][2] 			= cos(time);
+		rot[3][0] 			= sin(time/**(1/planets[i].size)*/) * (basicRadius + mnoznik);
+		rot[3][2] 			= cos(time/**(1/planets[i].size)*/) * (basicRadius + mnoznik);
+        rot = rot * scaling;
+		rotationArray[i] 	= rot;
+	}
+
+	float startingPoint = 5.0f;
+	std::string textures = "textures/";
+	std::string ext = ".png";
+
+    drawObjectTexture(
+            &sphereModel,
+            glm::translate(glm::vec3(startingPoint,-5,2)) * glm::scale(glm::vec3(5.0f)),
+            sunTexture);
+
+    for (int i = 0; i < 8; i++) {
+        drawObjectTexture(
+                &sphereModel,
+                glm::translate(glm::vec3(startingPoint,-5,2)) * rotationArray[i]/* * glm::scale(glm::vec3(planets[i].size)*/,
+                planets[i].texture
+        );
+    }
+
 	glutSwapBuffers();
 }
 
@@ -115,9 +169,10 @@ void init() {
 	programColor    = shaderLoader.CreateProgram("shaders/shader_color.vert", "shaders/shader_color.frag");
 	programTexture  = shaderLoader.CreateProgram("shaders/shader_tex.vert", "shaders/shader_tex.frag");
 
-	sphereModel = obj::loadModelFromFile("models/sphere.obj");
-	shipModel   = obj::loadModelFromFile("models/spaceship.obj");
+	sphereModel     = obj::loadModelFromFile("models/sphere.obj");
+	shipModel       = obj::loadModelFromFile("models/spaceship.obj");
 
+    starsTexture 	= Core::LoadTexture("textures/stars.png");
     sunTexture 	 	= Core::LoadTexture("textures/sun.png");
     mercuryTexture  = Core::LoadTexture("textures/mercury.png");
     venusTexture    = Core::LoadTexture("textures/venus.png");
@@ -128,6 +183,8 @@ void init() {
     uranusTexture   = Core::LoadTexture("textures/uranus.png");
     neptuneTexture  = Core::LoadTexture("textures/neptune.png");
 	shipTexture     = Core::LoadTexture("textures/spaceship.png");
+
+    initializePlanetsArray();
 }
 
 void shutdown() {
