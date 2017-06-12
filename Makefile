@@ -1,6 +1,6 @@
 all: main
 main: main.o Camera.o Shader_Loader.o Render_Utils.o Texture.o picopng.o 
-	g++ -Wall -g -o main main.o Render_Utils.o Camera.o Shader_Loader.o Texture.o picopng.o -lm -lGL -lGLU -lglut -lGLEW
+	g++ -Wall -g -o main main.o Render_Utils.o Camera.o Shader_Loader.o Texture.o picopng.o -lm -lGL -lGLU -lglut -lGLEW -std=c++11
 
 main.o: main.cpp
 	g++ -Wall -g -c main.cpp -o main.o

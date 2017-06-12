@@ -5,15 +5,19 @@
 #include <iostream>
 #include <cmath>
 
+
 #include "Shader_Loader.h"
 #include "Render_Utils.h"
 #include "Camera.h"
 #include "Texture.h"
 
+using namespace std;
+
 
 GLuint programColor;
 GLuint programTexture;
 
+GLuint sunTexture;
 GLuint mercuryTexture;
 GLuint venusTexture;
 GLuint earthTexture;
@@ -24,6 +28,8 @@ GLuint uranusTexture;
 GLuint neptuneTexture;
 GLuint gridTexture;
 GLuint shipTexture;
+
+GLuint cubemapTexture;
 
 Core::Shader_Loader shaderLoader;
 
@@ -36,7 +42,7 @@ glm::vec3 cameraDir;
 
 glm::mat4 cameraMatrix, perspectiveMatrix;
 
-glm::vec3 lightDir = glm::normalize(glm::vec3(1.0f, -0.9f, -1.0f));
+glm::vec3 lightDir = glm::normalize(glm::vec3(20.0f, 0.0f, -2.0f));
 
 void keyboard(unsigned char key, int x, int y) {
 	float angleSpeed = 0.2f;
@@ -58,7 +64,6 @@ glm::mat4 createCameraMatrix() {
 
 	return Core::createViewMatrix(cameraPos, cameraDir, up);
 }
-
 
 void drawObjectTexture(obj::Model * model, glm::mat4 modelMatrix, GLuint textureID) {
 	GLuint program = programTexture;
@@ -84,21 +89,24 @@ void renderScene() {
 	perspectiveMatrix = Core::createPerspectiveMatrix();
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(0.5f, 0.3f, 0.3f, 1.0f);
+
+	glClearColor(0.1f, 0.3f, 0.3f, 1.0f);
 
 	// Macierz statku "przyczepia" go do kamery. Warto przeanalizowac te linijke i zrozumiec jak to dziala.
-	glm::mat4 shipModelMatrix = glm::translate(cameraPos + cameraDir * 0.5f + glm::vec3(0,-0.25f,0)) * glm::rotate(-cameraAngle + glm::radians(90.0f), glm::vec3(0,1,0)) * glm::scale(glm::vec3(0.25f));
+	glm::mat4 shipModelMatrix = glm::translate(cameraPos + cameraDir * 0.5f + glm::vec3(0,-0.25f,0)) * glm::rotate(-cameraAngle + glm::radians(90.0f), glm::vec3(0,1,0)) * glm::scale(glm::vec3(0.1f));
 	drawObjectTexture(&shipModel, shipModelMatrix, shipTexture);
 
     glm::mat4 planetModelMatrix;
-	drawObjectTexture(&sphereModel, glm::translate(glm::vec3(0.0f,0,-2)) * glm::scale(glm::vec3(2.0f)) * glm::rotate(2.0f, glm::vec3(1.0f, 1.0f, 1.0f)), mercuryTexture);
-	drawObjectTexture(&sphereModel, glm::translate(glm::vec3(20.0f,0,5)) * glm::scale(glm::vec3(4.96f)) * glm::rotate(0.1f, glm::vec3(1.0f, 1.0f, 1.0f)), venusTexture);
-    drawObjectTexture(&sphereModel, glm::translate(glm::vec3(35.0f,0,2)) * glm::scale(glm::vec3(5.24f)), earthTexture);
-    drawObjectTexture(&sphereModel, glm::translate(glm::vec3(50.06f,0,2)) * glm::scale(glm::vec3(2.78f)), marsTexture);
-    drawObjectTexture(&sphereModel, glm::translate(glm::vec3(120.0f,0,2)) * glm::scale(glm::vec3(58.77f)), jupiterTexture);
-    drawObjectTexture(&sphereModel, glm::translate(glm::vec3(250,0,-2)) * glm::scale(glm::vec3(47.86f)), saturnTexture);
-    drawObjectTexture(&sphereModel, glm::translate(glm::vec3(330,0,2)) * glm::scale(glm::vec3(19.29f)), uranusTexture);
-    drawObjectTexture(&sphereModel, glm::translate(glm::vec3(380,0,2)) * glm::scale(glm::vec3(18.67f)), neptuneTexture);
+	float d = 50.0f;
+	drawObjectTexture(&sphereModel, glm::translate(glm::vec3(20.0f,0,-2)) * glm::scale(glm::vec3(20.0f)), sunTexture);
+	drawObjectTexture(&sphereModel, glm::translate(glm::vec3(45.0f,0,-2)) * glm::scale(glm::vec3(0.5f)), mercuryTexture);
+	drawObjectTexture(&sphereModel, glm::translate(glm::vec3(48.0f,0,5)) * glm::scale(glm::vec3(1.24f)), venusTexture);
+    drawObjectTexture(&sphereModel, glm::translate(glm::vec3(54.0f,0,2)) * glm::scale(glm::vec3(1.31f)), earthTexture);
+    drawObjectTexture(&sphereModel, glm::translate(glm::vec3(58.06f,0,2)) * glm::scale(glm::vec3(0.7f)), marsTexture);
+    drawObjectTexture(&sphereModel, glm::translate(glm::vec3(90.0f,0,2)) * glm::scale(glm::vec3(14.0f)), jupiterTexture);
+    drawObjectTexture(&sphereModel, glm::translate(glm::vec3(118.0f,0,-2)) * glm::scale(glm::vec3(11.0f)), saturnTexture);
+    drawObjectTexture(&sphereModel, glm::translate(glm::vec3(140.0f,0,2)) * glm::scale(glm::vec3(4.75f)), uranusTexture);
+    drawObjectTexture(&sphereModel, glm::translate(glm::vec3(150.0f,0,2)) * glm::scale(glm::vec3(4.5f)), neptuneTexture);
 	glutSwapBuffers();
 }
 
@@ -110,6 +118,7 @@ void init() {
 	sphereModel = obj::loadModelFromFile("models/sphere.obj");
 	shipModel   = obj::loadModelFromFile("models/spaceship.obj");
 
+    sunTexture 	 	= Core::LoadTexture("textures/sun.png");
     mercuryTexture  = Core::LoadTexture("textures/mercury.png");
     venusTexture    = Core::LoadTexture("textures/venus.png");
     earthTexture    = Core::LoadTexture("textures/earth_big.png");
