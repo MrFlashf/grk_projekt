@@ -109,9 +109,9 @@ void renderScene() {
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glClearColor(0.1f, 0.3f, 0.3f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	//tło
-//	drawObjectTexture(&sphereModel, glm::translate(glm::vec3(0,0,0))*glm::scale(glm::vec3(140.0f)), starsTexture);
+//	drawObjectTexture(&sphereModel, glm::translate(glm::vec3(540,0,0))*glm::scale(glm::vec3(500.0f)), starsTexture);
 
 	// Macierz statku "przyczepia" go do kamery. Warto przeanalizowac te linijke i zrozumiec jak to dziala.
 	glm::mat4 shipModelMatrix = glm::translate(cameraPos + cameraDir * 0.5f + glm::vec3(0,-0.25f,0)) * glm::rotate(-cameraAngle + glm::radians(90.0f), glm::vec3(0,1,0)) * glm::scale(glm::vec3(0.1f));
@@ -122,7 +122,7 @@ void renderScene() {
 	float time = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
 
 	glm::mat4 rotationArray[8];
-	float basicRadius = 5.0f;
+	float basicRadius = 20.0f;
 
 	for (int i = 0; i < 8; i++) {
 		glm::mat4 rot;
@@ -134,23 +134,32 @@ void renderScene() {
         }
         mnoznik+= planets[i].size + 1;
 
-        rot[0][0] 			= cos(time);
-		rot[2][0] 			= -sin(time);
-		rot[0][2] 			= sin(time);
-		rot[2][2] 			= cos(time);
-		rot[3][0] 			= sin(time/**(1/planets[i].size)*/) * (basicRadius + mnoznik);
-		rot[3][2] 			= cos(time/**(1/planets[i].size)*/) * (basicRadius + mnoznik);
+        rot[0][0] 			=  cos(time * 1/planets[i].size);
+		rot[2][0] 			= -sin(time * 1/planets[i].size);
+		rot[0][2] 			=  sin(time * 1/planets[i].size);
+		rot[2][2] 			=  cos(time * 1/planets[i].size);
+		rot[3][0] 			=  sin(time * 1/mnoznik) * (basicRadius + mnoznik);
+		rot[3][2] 			=  cos(time * 1/mnoznik) * (basicRadius + mnoznik);
         rot = rot * scaling;
 		rotationArray[i] 	= rot;
 	}
 
-	float startingPoint = 5.0f;
 	std::string textures = "textures/";
 	std::string ext = ".png";
 
+    float sunSize = 20.0f;
+    float startingPoint = 20.0f;
+
+
+    glm::mat4 sunRotation;
+    sunRotation[0][0] 			=  cos(time * 1.0f/sunSize);
+    sunRotation[2][0] 			= -sin(time * 1.0f/sunSize);
+    sunRotation[0][2] 			=  sin(time * 1.0f/sunSize);
+    sunRotation[2][2] 			=  cos(time * 1.0f/sunSize);
+
     drawObjectTexture(
             &sphereModel,
-            glm::translate(glm::vec3(startingPoint,-5,2)) * glm::scale(glm::vec3(5.0f)),
+            glm::translate(glm::vec3(startingPoint,-5,2)) * glm::scale(glm::vec3(sunSize)) * sunRotation,
             sunTexture);
 
     for (int i = 0; i < 8; i++) {
@@ -215,4 +224,3 @@ int main(int argc, char ** argv) {
 
 	return 0;
 }
-
