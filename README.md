@@ -1,4 +1,4 @@
-##Simple Solar System simulation in OpenGL
+## Simple Solar System simulation in OpenGL
 
 Requirements:
 1. Ubuntu based OS
