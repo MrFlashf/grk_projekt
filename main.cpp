@@ -43,7 +43,7 @@ glm::vec3 cameraDir;
 
 glm::mat4 cameraMatrix, perspectiveMatrix;
 
-glm::vec3 lightDir = glm::normalize(glm::vec3(20.0f, 0.0f, -2.0f));
+glm::vec3 lightDir = glm::normalize(glm::vec3(800.0f, 1.0f, 1.0f));
 
 struct Planet {
 	float size;
@@ -101,19 +101,13 @@ void initializePlanetsArray() {
 }
 
 void renderScene() {
-	// Aktualizacja macierzy widoku i rzutowania. Macierze sa przechowywane w zmiennych globalnych, bo uzywa ich funkcja drawObject.
-	// (Bardziej elegancko byloby przekazac je jako argumenty do funkcji, ale robimy tak dla uproszczenia kodu.
-	//  Jest to mozliwe dzieki temu, ze macierze widoku i rzutowania sa takie same dla wszystkich obiektow!)
 	cameraMatrix = createCameraMatrix();
 	perspectiveMatrix = Core::createPerspectiveMatrix();
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	//tło
-//	drawObjectTexture(&sphereModel, glm::translate(glm::vec3(540,0,0))*glm::scale(glm::vec3(500.0f)), starsTexture);
 
-	// Macierz statku "przyczepia" go do kamery. Warto przeanalizowac te linijke i zrozumiec jak to dziala.
 	glm::mat4 shipModelMatrix = glm::translate(cameraPos + cameraDir * 0.5f + glm::vec3(0,-0.25f,0)) * glm::rotate(-cameraAngle + glm::radians(90.0f), glm::vec3(0,1,0)) * glm::scale(glm::vec3(0.1f));
 	drawObjectTexture(&shipModel, shipModelMatrix, shipTexture);
 
@@ -210,7 +204,7 @@ int main(int argc, char ** argv) {
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(200, 200);
 	glutInitWindowSize(1920, 1080);
-	glutCreateWindow("Układ Słoneczny");
+	glutCreateWindow("Uklad Sloneczny");
 	glewInit();
 
 	init();
